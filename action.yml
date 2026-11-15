@@ -1,0 +1,97 @@
+name: 'mise タスクランナー'
+description: 'ベースリポジトリとターゲットリポジトリ間でタスク定義をハイブリッド解決して mise タスクを実行する'
+runs:
+  using: 'node24'
+  main: 'dist/index.js'
+  post: 'dist/cleanup.js'
+
+inputs:
+  # --- タスク実行 ---
+  task:
+    description: '実行する mise タスク名（スペースまたは改行区切りで複数指定可）'
+    required: true
+  args:
+    description: 'タスクに渡す追加引数'
+    default: ''
+  dir:
+    description: 'タスクを実行する作業ディレクトリ'
+    default: '.'
+  env:
+    description: 'タスク実行時に注入する追加環境変数（1行につき KEY=VALUE 形式）'
+    default: ''
+  jobs:
+    description: '依存タスク実行時の並列ジョブ数'
+    default: ''
+  raw:
+    description: '--raw フラグ付きで実行する（バッファリングなしの直接出力）'
+    default: 'false'
+  quiet:
+    description: 'mise 自身の情報メッセージ出力を抑制する（--quiet）'
+    default: 'false'
+  dry:
+    description: 'タスクを実行せず、タスクと依存関係の解決結果のみを確認する（ドライラン）'
+    default: 'false'
+  summary:
+    description: 'タスクの解決結果を GitHub Step Summary に出力する'
+    default: 'true'
+
+  # --- Base / Target 解決制御 ---
+  base:
+    description: 'ベースリポジトリのローカルパス（Reusable Workflow 呼び出し時は自動検出）'
+    default: ''
+  force:
+    description: 'ターゲットリポジトリよりベースリポジトリのタスク定義を強制的に優先する'
+    default: 'false'
+  protect:
+    description: 'ターゲットリポジトリによる上書きを禁止するベースタスク名（スペース/改行区切り、ワイルドカード * 対応）'
+    default: ''
+
+  # --- セットアップ制御 & jdx/mise-action 準拠 Inputs ---
+  setup:
+    description: 'mise CLI 本体の導入制御（auto: 未導入時のみ / true: 強制導入 / false: 導入しない）'
+    default: 'auto'
+  version:
+    description: 'インストールする mise CLI のバージョン（空文字の場合は最新版）'
+    default: ''
+  install:
+    description: 'mise install を実行して設定ファイル内のツールをインストールする'
+    default: 'true'
+  install_args:
+    description: 'mise install に渡す追加引数'
+    default: ''
+  cache:
+    description: 'GitHub Actions キャッシュを使用して mise のツールやダウンロードをキャッシュする'
+    default: 'true'
+  cache_key_prefix:
+    description: 'mise キャッシュキーのプレフィックス'
+    default: 'mise-v0'
+  cache_save:
+    description: 'キャッシュの保存を実行する'
+    default: 'true'
+  experimental:
+    description: 'mise の実験的機能（MISE_EXPERIMENTAL=1）を有効化する'
+    default: 'false'
+  log_level:
+    description: 'MISE_LOG_LEVEL の設定値（trace, debug, info, warn, error）'
+    default: ''
+  github_token:
+    description: 'mise リリースのダウンロードおよびプライベートなベースリポジトリの取得に使用する GitHub トークン（未指定時は GITHUB_TOKEN を使用）'
+    default: ''
+
+outputs:
+  result:
+    description: 'タスクが標準出力（stdout）に返した戻り値'
+  code:
+    description: 'タスク実行の終了コード'
+  source:
+    description: 'エントリポイントタスクの解決元（target / base / multiple）'
+  resolved:
+    description: '実行された全タスク（依存タスク含む）と解決元の JSON マップ'
+  base:
+    description: '特定・取得されたベースリポジトリのローカルディレクトリパス'
+  mise:
+    description: '実行に使用された mise CLI のバージョン'
+  duration:
+    description: 'タスク実行にかかった所要時間（秒）'
+  hit:
+    description: 'mise ツールキャッシュにヒットしたかどうか（true / false）'
